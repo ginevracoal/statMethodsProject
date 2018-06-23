@@ -1,3 +1,4 @@
+setwd("/home/ginevracoal/MEGA/Università/DSSC/semester_2/statistical_methods_for_data_science/statMethodsProject/source")
 source("dataset_import.R")
 library(ReadMe)
 library(dplyr)
@@ -21,23 +22,39 @@ nrow(data)
 n <- 500
 
 # create text files
-apply(data[1:n,], 1, 
-      function(x) write.table(data.frame(x[2]), 
-                              file = paste("../input_readme/",x[1],".txt",sep=""), row.names = FALSE, col.names = FALSE))
+unlink("../input_readme/*")
+apply(data[1:n,], 1, function(x) write.table(data.frame(x[2]),  
+                                             file = gsub(" ","",paste("../input_readme/",x[1],".txt",sep="")), row.names = FALSE, col.names = FALSE))
 
 # readapt csv file
 
 data1 <- data[1:n,] %>% 
-  select(SentenceId, Sentiment) %>% 
-  rename(filename = SentenceId) %>% 
+  mutate(filename = paste(SentenceId,".txt", sep="")) %>% 
   rename(truth = Sentiment) %>% 
-  add_column(trainingset = rbinom(n, 1, 0.5))
+  add_column(trainingset = rbinom(n, 1, 0.5)) %>% 
+  ungroup() %>% 
+  select(filename, truth, trainingset)
 
-head(data1)
-
-write.csv(data1, file = "../input_readme/control.csv", row.names = FALSE)
+# write.csv(data1, file = "../input_readme/control.csv", row.names = FALSE, quote=FALSE)
+write.table(data1, file = "../input_readme/control.txt", sep = ',',row.names = FALSE, quote=FALSE)
 
 # ======================================================
 # first try
 
-output <- undergrad(control="../input_readme/control.csv", sep=",") 
+oldwd <- getwd()
+setwd("../input_readme/")
+list.files()
+
+# undergrad
+output <- undergrad(sep = ',')
+
+# remove columns with variance 0
+preprocess <- preprocess(output)
+
+# readme
+results <- readme(undergradlist=preprocess)
+str(results)
+
+
+
+setwd(oldwd)
