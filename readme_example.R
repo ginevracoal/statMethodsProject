@@ -9,6 +9,7 @@ oldwd <- getwd()
 setwd(system.file("demofiles/clintonposts", package="ReadMe"))
 list.files()
 
+
 # UNDERGRAD FUNCTION
 
 # translate a set of texts stored in a single folder into a list
@@ -38,7 +39,7 @@ length(preprocess$testset)
 
 # why?
 # it computes variances for all columns representing a single word
-v2 <- apply(as.matrix(undergrad.results$trainingset[, 4:dim(undergrad.results$trainingset)[2]]), 
+v2 <- apply(as.matrix(preprocess$trainingset[, 4:dim(preprocess$trainingset)[2]]), 
       2, sd)
 v2
 
