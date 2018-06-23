@@ -1,9 +1,12 @@
-source("dataset_import.R")
+# BASIC EXAMPLE
 library(ReadMe)
+
+# functions inside the package
+ls("package:ReadMe")
 
 # change directory
 oldwd <- getwd()
-setwd("../dataset")
+setwd(system.file("demofiles/clintonposts", package="ReadMe"))
 list.files()
 
 # UNDERGRAD FUNCTION
@@ -16,6 +19,7 @@ output <- undergrad(sep = ',')
 # list the elements
 length(output)
 str(output)
+
 
 # PREPROCESS FUNCTION
 
@@ -35,7 +39,7 @@ length(preprocess$testset)
 # why?
 # it computes variances for all columns representing a single word
 v2 <- apply(as.matrix(undergrad.results$trainingset[, 4:dim(undergrad.results$trainingset)[2]]), 
-            2, sd)
+      2, sd)
 v2
 
 # and removes all words with 0 variance, meaning words not 
