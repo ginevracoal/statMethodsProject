@@ -86,7 +86,7 @@ rmc2
 results <- readme(undergradlist=preprocess)
 str(results)
 
-################plotting
+################plotting mod
 library(tidyverse)
 valori_fit = results$est.CSMF
 valori_veri = results$true.CSMF
