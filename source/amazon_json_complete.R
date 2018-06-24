@@ -5,6 +5,7 @@ oldwd <- getwd()
 setwd("/home/doma/0dssc/smds/statMethodsProject/input_readme/")
 
 #from here rerun how much you want
+set.seed(1)
 library(ReadMe)
 library(rjson)
 json_file <- "../dataset/Musical_Instruments_5.json"
@@ -18,8 +19,8 @@ reviews=json_data %>%
   select(reviewText,overall,reviewTime) %>%
   add_column(SentenceId=1:length(json_data$reviewText))
 
-#n <- 2000
-n = length(json_data$reviewerID)
+n <- 2000
+#n = length(json_data$reviewerID)
 # create text files with proper filenames (numbers)
 unlink("../input_readme/*")
 data=reviews
@@ -83,7 +84,7 @@ rmc2
 
 # compute the proportion of text documents within each of 
 # the user-specified categories
-results <- readme(undergradlist=preprocess)
+results <- readme(undergradlist=preprocess,boot.se = TRUE , nboot = 150)
 str(results)
 
 ################plotting mod
