@@ -1,5 +1,4 @@
 setwd("/home/ginevracoal/MEGA/Università/DSSC/semester_2/statistical_methods_for_data_science/statMethodsProject/source")
-source("dataset_import.R")
 source("plot.R")
 library(ReadMe)
 library(dplyr)
@@ -19,8 +18,13 @@ head(data)
 
 # number of sentences
 nrow(data)
+colnames(data)
 
-n <- nrow(data)
+
+# =============================================
+# prepare for ReadMe
+
+n <- 500
 
 # create text files
 unlink("../input_readme/*")
@@ -40,8 +44,7 @@ data1 <- data[1:n,] %>%
 write.table(data1, file = "../input_readme/control.txt", sep = ',',row.names = FALSE, quote=FALSE)
 
 # ======================================================
-# first try
-
+# ReadMe
 oldwd <- getwd()
 setwd("../input_readme/")
 list.files()
@@ -55,30 +58,89 @@ preprocess <- preprocess(output)
 # readme
 results <- readme(undergradlist=preprocess)
 str(results)
-
-################
-library(tidyverse)
-valori_fit = results$est.CSMF
-valori_veri = results$true.CSMF
-#converto in dataframe
-valori_fit = as_tibble(as.list(valori_fit))
-valori_veri = as_tibble(as.list(valori_veri))
-valori_plot=gather(valori_fit,type)
-valori_plot_veri=gather(valori_veri,type)
-#typeof(results$est.CSMF)
-valori_plot_veri
-valori_plot
-valori_tot=inner_join(valori_plot,valori_plot_veri,by="type")
-
-ggplot(data=valori_tot,aes(x=value.x,y=value.y))+
-  geom_point(aes(color=type))+
-  ggtitle(" Computed vs fitted values")+
-  # geom_smooth(method=lm)+
-  xlab("Real value")+
-  ylab("Computed value")+
-  theme_minimal()+
-  geom_abline(slope = 1,intercept = 0)+
-  xlim(0,0.3) + ylim(0,0.3)
-
-
 setwd(oldwd)
+
+# ===========================
+# https://www.svm-tutorial.com/2014/11/svm-classify-text-r/
+library(RTextTools)
+data2 <- data %>% 
+  ungroup() %>% 
+  select(Phrase, Sentiment)
+
+# train-test split
+smp_size <- floor(0.6 * nrow(data2))
+train_ind <- sample(seq_len(nrow(data2)), size = smp_size)
+train <- data2[train_ind, ]
+validation <- data2[-train_ind, ]
+test <- data2[-train_ind, ] %>% select(Phrase)
+
+# Create the document term matrix
+dtMatrix <- create_matrix(train$Phrase)
+
+# Configure the training data
+container <- create_container(dtMatrix, train$Sentiment, trainSize=1:nrow(train), virgin=FALSE)
+
+# train a SVM Model
+linear_svm <- train_model(container, "SVM", kernel="linear", cost=1)
+radial_svm <- train_model(container, "SVM", kernel="radial", cost=1)
+
+
+# trace("create_matrix", edit=T)
+# https://github.com/timjurka/RTextTools/issues/4
+
+# test set document term matrix
+predMatrix <- create_matrix(test$Phrase, originalMatrix=dtMatrix)
+
+# create the corresponding container
+predictionContainer <- create_container(predMatrix, labels=rep(0,nrow(test)), testSize=1:nrow(test), virgin=FALSE)
+
+# predict
+linear_predictions <- classify_model(predictionContainer, linear_svm)
+radial_predictions <- classify_model(predictionContainer, radial_svm)
+
+library(caret)
+confusionMatrix(table(linear_predictions$SVM_LABEL, validation$Sentiment, dnn=c("Prediction", "Actual")))
+
+# compute proportions
+
+# true_proportions <- validation %>% 
+#   group_by(Sentiment) %>% 
+#   summarise(prop = n()/nrow(validation))
+
+svm_proportions <- function(predictions){
+  df <- predictions %>% 
+    group_by(SVM_LABEL) %>% 
+    summarise(prop = n()/nrow(predictions))
+  return(df$prop)
+}
+
+# compute mean absolute error
+
+library(ModelMetrics)
+mae(true_proportions$prop, svm_proportions(linear_predictions))
+mae(true_proportions$prop, svm_proportions(radial_predictions))
+mae(results$true.CSMF, results$est.CSMF)
+
+# qui creare una tabella
+
+# ===========================================
+
+all_data <- data.frame(true = results$true.CSMF, 
+                       readme_est = results$est.CSMF,
+                       linear_est = svm_proportions(linear_predictions),
+                       radial_est = svm_proportions(radial_predictions)) %>% 
+            add_column(rating = as.factor(seq(1,5,1))) %>% 
+  gather(key = type, value = est, -c(rating, true))
+
+library(RColorBrewer)
+ggplot(all_data, aes(true, est, color = rating, shape = type)) +
+  geom_point(size = 2) +
+  xlab(expression(P(D))) +
+  ylab(paste("Estimated ", expression(P(D)))) +
+  geom_abline(slope = 1, intercept = 0) +
+  xlim(c(0,0.6)) + ylim(c(0,0.6)) +
+  scale_color_brewer(palette="Set2")+
+  scale_shape_manual(values = c(0, 2, 16))
+
+
+  
