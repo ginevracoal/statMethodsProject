@@ -4,3 +4,4 @@
 .Ruserdata
 readme_examples/*
 input_readme/*
+*.json
