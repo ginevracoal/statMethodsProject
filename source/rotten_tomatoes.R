@@ -47,7 +47,7 @@ setwd("../input_readme/")
 list.files()
 
 # undergrad
-output <- undergrad(sep = ',')
+output <- undergrad(sep = ',', stem = FALSE)
 
 # remove columns with variance 0
 preprocess <- preprocess(output)
@@ -77,7 +77,8 @@ ggplot(data=valori_tot,aes(x=value.x,y=value.y))+
   xlab("Real value")+
   ylab("Computed value")+
   theme_minimal()+
-  geom_abline(slope = 1,intercept = 0)
+  geom_abline(slope = 1,intercept = 0)+
+  xlim(0,0.3) + ylim(0,0.3)
 
 
 setwd(oldwd)
