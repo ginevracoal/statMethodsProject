@@ -1,0 +1,43 @@
+---
+title: 'An overview of ReadMe package'
+date: '28 Giugno 2018'
+author: Ginevra Carbone, Domagoj Korais
+always_allow_html: yes
+editor_options:
+  chunk_output_type: inline
+output:
+  html_document:
+    toc: yes  
+  # ioslides_presentation:
+  #   incremental: true
+  #   widescreen: true
+  #   fig_width: 7
+  #   smaller: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+## Introduction
+
+## Theoretical background
+
+## Classification
+-> rotten tomatoes
+
+## analisi approfondita (botto di plot) 
+-> amazon
+- boxplot correlazione rating numero di parole
+- distribuzione dei rating
+- scatterplot principale
+- proporzioni nel tempo
+- standard error sul training set
+
+## possibili problemi
+- twitter, lunghezza frasi
+- stemming 
+- bootstrap?
+
+## conclusioni
