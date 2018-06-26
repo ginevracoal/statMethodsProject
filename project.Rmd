@@ -1,0 +1,773 @@
+---
+title: ReadMe package <br> for Content Analysis
+author: "Ginevra Carbone, Domagoj Korais"
+date: "28 Giugno 2018"
+output:
+  ioslides_presentation:
+    fig_width: 7
+    incremental: yes
+    smaller: yes
+    widescreen: yes
+  html_document:
+    toc: yes
+  slidy_presentation:
+    incremental: yes
+editor_options:
+  chunk_output_type: inline
+subtitle: A theoretical and practical evaluation
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(cache = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+
+set.seed(123)
+mainwd <- getwd()
+# setwd("/home/ginevracoal/MEGA/Università/DSSC/semester_2/statistical_methods_for_data_science/statMethodsProject/source")
+```
+
+```{r libraries, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(ReadMe)
+library(gridExtra)
+```
+
+## Introduction | Content Analysis {.build}
+
+<div class="centered">
+What is **Sentiment Analysis**? 
+</div>
+It is the process of *categorizing* opinions about a specific sentence or text. 
+
+<br>
+
+<div class="columns-2">
+
+<div align = "center">
+**Classification methods**
+</div>
+
+*Goal:* increasing the accuracy of individual classifications,
+which is the highest number of correct predictions.
+
+Suppose that missclassifications mostly occur in some specific categories.
+This is the case of a *statistical bias*: average difference between true and estimated proportion of documents in each category.
+
+<!-- <br> -->
+<div align="center">
+Here comes **Content Analysis**
+</div>
+
+*Goal*: getting approximately unbiased estimates of category proportions.
+
+Notice that there exists *no necessary connection* between low misclassification rates and low bias in each category, except at the extremes of classification.
+
+## Introduction | Amazon reviews dataset {.build}
+
+An example of categorical proportions on *Amazon reviews*.
+
+```{r}
+cds_prop <- readRDS("source/results/cds_prop.rds")
+instr_prop <- readRDS("source/results/instr_prop.rds")
+cell_prop <- readRDS("source/results/cell_prop.rds")
+elec_prop <- readRDS("source/results/elec_prop.rds")
+```
+
+<div class="centered">
+```{r fig.width=10}
+cds_plot <- cds_prop %>% ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
+  geom_point() + geom_line() +
+  scale_color_brewer(palette="Set2")+
+  xlab("review time") + ylab("proportion of reviews")+
+  labs(title="CDs and Vinyls ratings")+
+  theme_minimal()
+
+instr_plot <- instr_prop %>% 
+  ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
+  geom_point() + geom_line() +
+  scale_color_brewer(palette="Set2")+
+  xlab("review time") + ylab("proportion of reviews")+
+  labs(title="Musical instruments ratings")+
+    theme_minimal()
+
+cell_plot <- cell_prop %>% 
+  ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
+  geom_point() + geom_line() +
+  scale_color_brewer(palette="Set2")+
+  xlab("review time") + ylab("proportion of reviews")+
+  labs(title="Cellphones ratings")+
+  theme_minimal()
+
+elec_plot <- elec_prop %>% 
+  ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
+  geom_point() + geom_line() + 
+  scale_color_brewer(palette="Set2")+
+  theme_minimal()+
+  xlab("review time") + ylab("proportion of reviews")+
+  labs(title="Electronics ratings")
+
+grid.arrange(cds_plot,instr_plot, cell_plot, elec_plot, ncol=2, nrow=2)
+```
+
+## Theoretical background | Analyzing text statistically {.build}
+
+Documents need to be **preprocessed** by removing lowercase, punctuation, spaces, stop words, applying stemming and creating the so called "bag of words".
+
+<br>
+
+We will use the following *notation*.
+
+- $j=1,\dots,J$ are document categories;
+- there are two sets of text documents:
+    - labeled training set $i=1,\dots,n$;
+    - unlabeled test set $l=1,\dots,L$;
+- $D_i = j$ if document $i$ belongs to category $j$;
+- $\{S_{i1},\dots,S_{iK}\}$ is the set of stem words for all documents, where $S_{ik}=\delta_{ik}$.
+
+## Theoretical background | Analyzing text statistically {.build}
+
+<div align="center">
+**Individual classifications**
+
+$\{D_1,\dots,D_L\}$
+
+vs
+
+**Proportions of classifications** 
+
+$P(D) = \{P(D=1),\dots,P(D=J)\}$
+</div>
+
+<br>
+
+where $P(D=j) = \frac{1}{L} \sum_{l=1}^{L} I(D_l = j)$ is the proportion of documents belonging to category $j$.
+
+
+## Theoretical background | The method {.build}
+
+The method provided by `ReadMe` package allows to calculate these estimates **without performing an individual classification**, let's understand how.
+
+Let $\hat{D}$ be the estimated classification for the documents. Then the *law of total probability* allows to express the proportion of documents estimated to be in category $j$ in terms of the **missclassification probabilities** $P(\hat{D}=j \,|\, D=j')$ and the **true proportion** as
+$$
+P(\hat{D}=j)=\sum_{j'=1}^{L} P(\hat{D}=j \,|\, D=j') P(D=j').
+$$
+
+
+The idea is to avoid computing $P(\hat{D}=j)$, based on the fact that each text is written by a person with a specific *opinion*.
+
+
+## Theoretical background | The method {.build}
+
+Since the words chosen are by definition a function of the document category and the categories partition our sample space, the probability of each of the $2^k$ stem word combinations (*stem profiles*) occuring is
+$$
+P(S=s)=\sum_{j=1}^{L} P(S=s \,|\, D=j) P(D=j)
+$$
+where $P(S=s | D=j)$ is the probability of $s$ occuring within a document of category $D$.
+
+We get the equivalent matrix expression  
+$$
+\underset{2^K\times1}{P(S)} = \underset{2^K\times J}{P(S\,|\,D)} \underset{J\times1}{P(D)}.
+$$
+
+## Theoretical background | The method {.build}
+
+The **fundamental assumption** for this model is the proportion $P(S=s \,|\, D=j)$ being the same for both training and test set, so it assumes that the documents in the labeled set contain a sufficient number of examples to describe the language used in each category.
+
+We can now directly solve this equation using regression on the coefficients $P(D)$, but there are two relevant problems we have to pay attention to:
+
+- $K$ can be very large, so $2^K$ makes this model **computationally expensive**;
+- The matrix $P(S=s \,|\, D=j)$ is **sparse**, since $n$ is usually much smaller than $2^K$.
+
+<br>
+<div align="center">
+How do we avoid these problems?
+</div>
+
+We randomly choose a subset of words, as seen in [2].
+
+## Inside ReadMe package | functions {.build}
+
+The package contains three main functions:
+
+- `undergrad()` translates a set of texts stored in a single folder into a dataset, where each text is a row and each word is a column, the so called "**document term matrix**", based on a specific threshold;
+
+- `preprocess()` removes all columns with null variance, i.e. extremely **rare words**;
+
+- `readme()` computes the **real proportions** on the train set and the **estimated proportions** on the test set. It optionally computes **bootstrap intervals** too.
+
+Let's take a better look into these function through an example.
+
+## Inside ReadMe package | Rotten Tomatoes dataset {.build}
+
+The first dataset we analyzed contains $8529$ movie reviews from the famous website *www.rottentomatoes.com*, labeled with ratings from $1$ to $5$.
+
+The inputs for `undergrad()` are the text files containing all the reviews and a data frame containing file names, classification labels, and a (randomly generated) binary value separating train set from test set.
+
+```{r}
+head(readRDS("source/results/rotten_control.rds"))
+```
+
+`preprocess()` found no invariant columns, probably due to the large dimension of our dataset.
+
+## Inside ReadMe package | Rotten Tomatoes dataset {.build}
+
+After applying the main function `readme()`, we computed the same proportions from the results of two diffent classification methods: support vector machines using **linear** and **radial** kernels respectively.
+
+<div align="center">
+```{r fig.height=4.2}
+rotten <- readRDS("source/results/rotten.rds")
+
+ggplot(rotten, aes(true, est, color = rating, shape = type)) +
+  geom_point(size = 2) +
+  xlab(expression(P(D))) +
+  ylab(paste("Estimated ", expression(P(D)))) +
+  geom_abline(slope = 1, intercept = 0) +
+  xlim(c(0,0.6)) + ylim(c(0,0.6)) +
+  scale_color_brewer(palette="Set2")+
+  scale_shape_manual(values = c(0, 2, 16))+
+  theme_minimal()
+```
+</div>
+
+
+
+
+```{r import dataset}
+#Importing data
+library(tidyverse)
+#   rename(rating=overall)
+# saveRDS(reviews, "../dataset/amazon_CDs_and_vinyl.rds")
+reviews=readRDS("~/0dssc/smds/statMethodsProject/dataset/amazon_CDs_and_vinyl.rds")
+#contiamo le parole nei testi, dirty trick, conto gli spazi e aggiungo 1
+reviews=reviews%>%
+  mutate(number_words= (str_count(reviewText,pattern = " ")+1) )
+#class distribution plot----
+```
+
+
+## Inside ReadMe package | Rotten Tomatoes dataset {.build}
+
+The following tables compares the **mean absolute errors** on the proportions for these methods.
+```{r}
+readRDS("source/results/mae_table.rds")
+```
+
+
+## Testing Readme | An overview{.build}
+
+<div class="centered">
+Tested on  **Amazon CD and vinyls** dataset
+</div>
+
+
+<br>
+
+<div class="columns-2">
+
+<div align = "center">
+**The dataset**
+</div>
+
+- Provided by University of California, San Diego
+
+- $1097592$ reviews
+
+- five different labels
+
+- Timespan of various years
+
+<!-- <br> -->
+<div align="center">
+Performed **tests**
+</div>
+
+- Influence of dimension of the training set
+
+- Influence of words number in document
+
+- Assessing optimal parameters
+
+
+##Main characteristics of the dataset | Words and ratings distributions
+
+
+<div align="center">
+```{r Distribution number of words}
+
+#plot dei risultati
+reviews%>%filter(number_words<=1000)%>%
+ggplot(aes(number_words))+
+  geom_histogram()+
+  ggtitle(" Number of words count")+
+   xlab("Number of words")+
+  ylab("Total Count")+
+  xlim(0, 1000)+
+  theme_minimal() ->p1
+
+#plot dei risultati
+reviews%>%filter(number_words<=50)%>%
+ggplot(aes(number_words))+
+  geom_histogram()+
+  ggtitle(" Number of words count")+
+   xlab("Number of words")+
+   ylab("")+
+  xlim(0, 50)+
+  theme_minimal()->p2
+
+plot_distribution_ratings=function(reviews){
+classes=reviews%>%
+  select(rating)%>%
+  group_by(rating)%>%
+  summarise(total=n())%>%
+  mutate(percentage=total/sum(total))
+
+p=ggplot(classes,aes(rating,total,fill=as.factor(rating)))+
+  geom_col()+
+  labs(fill="Rating",
+       title=" Ratings count")+
+       
+     
+  xlab("Rating")+
+  ylab("")+
+  theme_minimal()
+return(p)
+}
+
+p3=plot_distribution_ratings(reviews)
+
+grid.arrange(p1,p2,p3,nrow=1,ncol=3)
+```
+</div>
+
+
+
+##Relation between number of words and ratings
+
+<div class="columns-2">
+```{r number of words, fig.width=4.5}
+
+
+#check correlation length-rating----
+reviews%>%
+  filter( number_words<=400)%>%
+ggplot(aes(x=as.factor(rating),y=number_words))+
+  geom_boxplot()+
+  labs(title="Relation between number of words and rating",
+       subtitle=" Number of words < 400.",
+       caption="Source: University of California, San Diego")+
+  ylab("Number of words")+
+  xlab("Rating")+
+  theme_minimal()
+
+```
+
+<br>
+
+- There is no significant relation between the number of words in the text and the final rating
+
+- It's possible to use this dataset to study the influence of the number of words on it's performace.
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Testing Readme | Influence of dimension of the training set 
+<div align=center>
+```{r amazon training size determination}
+library(tidyverse)
+#import dati calcolati altro pc con m=10 mm=10
+super_avg=readRDS("~/0dssc/smds/statMethodsProject/computed_results/risultati_run_amazon_3h_nonliperdere.rds")
+m=10
+mm=10
+#valori medi e deviazione standard dalla lista
+media_rmse=data.frame(media=1:m)
+sd_rmse = data.frame(sd=1:m)
+training = data.frame(training = 1:m)
+for (i in 1:m){
+media_rmse[i,]=mean(super_avg[[i]]$avg)
+sd_rmse[i,]=sd(super_avg[[i]]$avg)/mm^(1/2)
+training[i,]=round(mean(super_avg[[i]]$training))
+}
+results=data.frame(training=training,media=media_rmse,sd=sd_rmse)
+
+
+##plotting results
+ggplot(results,aes(training,media))+
+  geom_linerange(aes(ymin=media-sd, ymax=media+sd)) +
+  geom_line()+
+  labs(
+  title="Avg. RMSE by elements in training set",
+  subtitle=paste("Total number of texts:10000,10 run for each training value" ),
+  caption=" Subset with 2000 elements for each class")+
+  ylab("Mean")+
+  scale_color_brewer(palette="Set2")+
+  theme_minimal()
+  
+```
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## extra corte
+
+```{r  frasi extra corte}
+results=readRDS("~/0dssc/smds/statMethodsProject/computed_results/results_extra_corte_1_15_cd.rds")
+    ################plotting mod no bootstrap
+
+    valori_fit = results$est.CSMF
+    valori_veri = results$true.CSMF
+    #sd_fit = results$CSMF.se
+    #converto in dataframe
+    valori_fit = as_tibble(as.list(valori_fit))
+    valori_veri = as_tibble(as.list(valori_veri))
+    #sd_fit = as_tibble(as.list(sd_fit))
+    valori_plot=gather(valori_fit,type)
+    valori_plot_veri=gather(valori_veri,type)
+    #valori_sd=gather(sd_fit,type)
+    #typeof(results$est.CSMF)
+   
+    #valori_sd
+    valori_tot=inner_join(valori_plot,valori_plot_veri,by="type",suffix=c(".est",".real"))
+    #valori_tot=inner_join(valori_tot,valori_sd)
+    #valori_tot
+valori_tot=rename(valori_tot,rating=type)
+    p=ggplot(data=valori_tot,aes(x=value.real,y=value.est,label = value.est))+
+      geom_point(aes(color=rating))+
+    #  geom_linerange(aes(ymin=value.est-value, ymax=value.est+value,color=type)) +
+     # ggtitle(" Computed vs fitted values for Amazon music dataset, frasi corte")+
+      ggplot2::labs(
+        title = "Computed vs fitted values, number of words <=15",
+        subtitle = paste("total number of elements:",9898,",","of which training:",1000))+
+      # geom_smooth(method=lm)+
+      xlab("Real value")+
+      ylab("Computed value")+
+      theme_minimal()+
+      geom_abline(slope = 1,intercept = 0)
+
+    plot(p)
+    ############################
+```
+
+##Frasi corte
+```{r  frasi  corte}
+results=readRDS("~/0dssc/smds/statMethodsProject/computed_results/results_corte_16_50_cd.rds")
+    ################plotting mod no bootstrap
+
+    valori_fit = results$est.CSMF
+    valori_veri = results$true.CSMF
+    #sd_fit = results$CSMF.se
+    #converto in dataframe
+    valori_fit = as_tibble(as.list(valori_fit))
+    valori_veri = as_tibble(as.list(valori_veri))
+    #sd_fit = as_tibble(as.list(sd_fit))
+    valori_plot=gather(valori_fit,type)
+    valori_plot_veri=gather(valori_veri,type)
+    #valori_sd=gather(sd_fit,type)
+    #typeof(results$est.CSMF)
+    
+    #valori_sd
+    valori_tot=inner_join(valori_plot,valori_plot_veri,by="type",suffix=c(".est",".real"))
+    #valori_tot=inner_join(valori_tot,valori_sd)
+    #valori_tot
+valori_tot=rename(valori_tot,rating=type)
+    p=ggplot(data=valori_tot,aes(x=value.real,y=value.est,label = value.est))+
+      geom_point(aes(color=rating))+
+    #  geom_linerange(aes(ymin=value.est-value, ymax=value.est+value,color=type)) +
+     # ggtitle(" Computed vs fitted values for Amazon music dataset, frasi corte")+
+      ggplot2::labs(
+        title = "Computed vs fitted values, number of words <=50 e >=16",
+        subtitle = paste("total number of elements:",9898,",","of which training:",1000))+
+      # geom_smooth(method=lm)+
+      xlab("Real value")+
+      ylab("Computed value")+
+      theme_minimal()+
+      geom_abline(slope = 1,intercept = 0)
+
+    plot(p)
+    ############################
+```
+
+
+
+##Frasi lunghe
+```{r  frasi lunghe}
+results=readRDS("~/0dssc/smds/statMethodsProject/computed_results/results_lunghe_51_200_cd.rds")
+    ################plotting mod no bootstrap
+
+    valori_fit = results$est.CSMF
+    valori_veri = results$true.CSMF
+    #sd_fit = results$CSMF.se
+    #converto in dataframe
+    valori_fit = as_tibble(as.list(valori_fit))
+    valori_veri = as_tibble(as.list(valori_veri))
+    #sd_fit = as_tibble(as.list(sd_fit))
+    valori_plot=gather(valori_fit,type)
+    valori_plot_veri=gather(valori_veri,type)
+    #valori_sd=gather(sd_fit,type)
+   
+    valori_tot=inner_join(valori_plot,valori_plot_veri,by="type",suffix=c(".est",".real"))
+    #valori_tot=inner_join(valori_tot,valori_sd)
+    #valori_tot
+valori_tot=rename(valori_tot,rating=type)
+    p=ggplot(data=valori_tot,aes(x=value.real,y=value.est,label = value.est))+
+      geom_point(aes(color=rating))+
+    #  geom_linerange(aes(ymin=value.est-value, ymax=value.est+value,color=type)) +
+     # ggtitle(" Computed vs fitted values for Amazon music dataset, frasi corte")+
+      ggplot2::labs(
+        title = "Computed vs fitted values, number of words <=200 e >=51",
+        subtitle = paste("total number of elements:",10000,",","of which training:",1000))+
+      # geom_smooth(method=lm)+
+      xlab("Real value")+
+      ylab("Computed value")+
+      theme_minimal()+
+      geom_abline(slope = 1,intercept = 0)
+
+    plot(p)
+    ############################
+```
+
+
+
+
+
+##Numero di tweet raccolti
+
+```{r "top 20 Hashtag analysis"}
+#hashtag study
+
+#tidying dataset for lexical analysis
+library(tidyverse)
+library(rtweet)
+
+library(gridExtra)
+
+library(tidytext)
+library(widyr)
+library(igraph)
+library(ggraph)
+#--------------------------------------------------------------------------------------------Hashtag
+#Tidy for hashtag study
+dataset=readRDS("/home/doma/0dssc/data_managment/esame_finale/data/FINAL_DATA_DEFINITIVO/reduced_tweet_no_duplicati_stripped_text_separated.RDS")
+#only italian language tweets
+dataset=dataset%>%filter(lang=="it")
+
+
+
+
+
+# remove punctuation, convert to lowercase.
+dataset_clean <- dataset %>%
+  select(hashtags) %>%
+  unnest_tokens(word, hashtags)
+#put in original dataframe
+dataset$hashtags=dataset_clean$word
+
+a=dataset_clean %>%
+  count(word, sort = TRUE)
+
+
+
+
+#plot the top 20 HASHTAGS
+dataset_clean %>%
+  count(word, sort = TRUE) %>%
+  
+  top_n(20+1) %>%
+  filter(!is.na(word))%>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(x = word, y = n)) +
+  geom_col(aes(alpha=n),show.legend =FALSE) +
+  xlab(NULL) +
+  coord_flip() +
+  labs(x = "Hashtags",
+       y = "Count",
+       title = " Top 20 hashtags by count")+
+  ggplot2::theme_minimal()
+
+```
+
+##Distro parole
+```{r distro parole}
+#plot dei risultati
+megatrain=readRDS("~/0dssc/smds/statMethodsProject/computed_results/distro_parole_tweets.rds")
+
+
+megatrain%>%
+  filter(number_words<100)%>%
+ggplot(aes(number_words))+
+  geom_histogram(bins=50)+
+  ggtitle(" words count")+
+  theme_minimal()
+```
+
+##Andamento temporale tweets
+
+```{r "Hashtag analysis zoom"}
+
+#hashtag study
+
+#tidying dataset for lexical analysis
+library(tidyverse)
+library(rtweet)
+
+library(gridExtra)
+
+library(tidytext)
+library(widyr)
+library(igraph)
+library(ggraph)
+#--------------------------------------------------------------------------------------------Hashtag
+#Tidy for hashtag study
+dataset=readRDS("/home/doma/0dssc/data_managment/esame_finale/data/FINAL_DATA_DEFINITIVO/reduced_tweet_no_duplicati_stripped_text_separated.RDS")
+#only italian language tweets
+dataset=dataset%>%filter(lang=="it")
+
+TIMEFRAME=data.frame(begin=as.POSIXct("2018-05-27 17:15:21", tz = "GMT"),end=as.POSIXct("2018-05-27 18:57:37", tz = "GMT"))
+
+#zoom on hot time
+p4=dataset%>%
+  #filter(has_top_hashtag==TRUE)%>%
+    filter(hashtags=="iostoconmattarella" | hashtags=="mattarelladimettiti" | hashtags=="impeachment" 
+           | hashtags=="impeachmentmattarella" )%>%
+
+  group_by(hashtags,is_retweet)%>%
+   filter ( created_at >= as.POSIXct("2018-05-27 16:00:00",tz = "GMT") & created_at <= as.POSIXct("2018-05-28 00:00:00",tz = "GMT") ) %>%
+  ts_plot( "5 minutes") +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(plot.title = ggplot2::element_text(face = "bold")) +
+  ggplot2::labs(
+    x = NULL,
+    y = NULL,
+    title = "Frequency  Tweets statuses for period 16:00-24:00 27/05/2018",
+    subtitle = "Twitter status (tweet) counts aggregated using five-minutes intervals",
+    caption = "\nSource: Data collected from Twitter's REST API via rtweet",
+    linetype="Retweet?",
+    colour = " Hashtags"
+  )  +
+    geom_rect(data = TIMEFRAME,
+                aes(xmin = as.POSIXct(begin,tz = "GMT"), xmax =as.POSIXct( end,tz = "GMT"), ymin = -Inf, ymax = +Inf),
+                inherit.aes = FALSE, fill = "red", alpha = 0.1)
+                
+                
+                p4
+```
+
+
+##Prova coi Tweet per verificare 
+
+```{r}
+
+mattarella1=readRDS("~/0dssc/smds/statMethodsProject/computed_results/tweet_sentiment_test.rds")
+valori_tot=mattarella1
+valori_tot1=valori_tot
+valori_tot1$type[valori_tot1$type==0] <- "Contra"
+valori_tot1$type[valori_tot1$type==1] <- "Pro"
+valori_tot1=rename(valori_tot1,Sentiment=type)
+p=ggplot(data=valori_tot1,aes(x=value.real,y=value.est,label = value.est))+
+  geom_point(aes(color=Sentiment))+
+  #  geom_linerange(aes(ymin=value.est-value, ymax=value.est+value,color=type)) +
+  # ggtitle(" Computed vs fitted values for Amazon music dataset, frasi corte")+
+  ggplot2::labs(
+    title = "Computed vs fitted values for Twitter dataset",
+    subtitle = paste("total number of elements:",27754,",","of which training:",1000),
+    caption = "Tweets downloaded usind R package Rtweet"  )+
+  # geom_smooth(method=lm)+
+  xlab("Real value")+
+  ylab("Computed value")+
+  theme_minimal()+
+  geom_abline(slope = 1,intercept = 0)
+
+plot(p)
+
+```
+
+##Mattarella sentiment
+
+```{r Mattarella}
+mattarella1=readRDS("~/0dssc/smds/statMethodsProject/computed_results/tweet_mattarella_sentiment.rds")
+valori_tot=mattarella1
+valori_tot1=valori_tot
+valori_tot1$type[valori_tot1$type==0] <- "Contra"
+valori_tot1$type[valori_tot1$type==1] <- "Pro"
+
+ggplot(valori_tot1,aes(y=value.est,x=type,fill=type))+
+  labs(title="Pro e Contra Mattarella",
+       subtitle= "From tweets with hashtag Mattarella",
+       x="Sentiment",
+       y="Percentage",
+       caption="Tweets gathered using R library Rtweet for the period around May 27")+
+  geom_col()+
+  theme_minimal()+
+  guides(fill=FALSE)
+
+```
+
+
+
+
+
+
+## Bibliography
+
+[1] "A Method of Automated Nonparametric Content Analysis for Social Science", D. J. Hopkins, G. King, 2010.
+[2] "Verbal Autopsy Methods with Multiple Causes of Death", King, Gary and Ying Lu, 2008.
+[3] "ReadMe: Software for Automated Content Analysis", D. Hopkins, G. King, M. Knowles, S. Melendez, 2012.
+[4] Amazon dataset: http://jmcauley.ucsd.edu/data/amazon/
