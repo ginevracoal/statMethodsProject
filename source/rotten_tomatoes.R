@@ -1,9 +1,9 @@
 setwd("/home/ginevracoal/MEGA/Università/DSSC/semester_2/statistical_methods_for_data_science/statMethodsProject/source")
 source("plot.R")
+source("dataset_import.R")
 library(ReadMe)
 library(dplyr)
 library(tidyverse)
-
 set.seed(123)
 
 # get labeled dataset
@@ -24,7 +24,7 @@ colnames(data)
 # =============================================
 # prepare for ReadMe
 
-n <- 500
+n <- nrow(data)
 
 # create text files
 unlink("../input_readme/*")
@@ -32,7 +32,6 @@ apply(data[1:n,], 1, function(x) write.table(data.frame(x[2]),
                                              file = gsub(" ","",paste("../input_readme/",x[1],".txt",sep="")), row.names = FALSE, col.names = FALSE))
 
 # readapt csv file
-
 data1 <- data[1:n,] %>% 
   mutate(filename = paste(SentenceId,".txt", sep="")) %>% 
   rename(truth = Sentiment) %>% 
@@ -43,6 +42,8 @@ data1 <- data[1:n,] %>%
 # write.csv(data1, file = "../input_readme/control.csv", row.names = FALSE, quote=FALSE)
 write.table(data1, file = "../input_readme/control.txt", sep = ',',row.names = FALSE, quote=FALSE)
 
+unlink("results/rotten_control.rds")
+saveRDS(data1, "results/rotten_control.rds")
 # ======================================================
 # ReadMe
 oldwd <- getwd()
@@ -50,7 +51,7 @@ setwd("../input_readme/")
 list.files()
 
 # undergrad
-output <- undergrad(sep = ',', stem = FALSE)
+output <- undergrad(sep = ',')
 
 # remove columns with variance 0
 preprocess <- preprocess(output)
@@ -117,30 +118,39 @@ svm_proportions <- function(predictions){
 # compute mean absolute error
 
 library(ModelMetrics)
-mae(true_proportions$prop, svm_proportions(linear_predictions))
-mae(true_proportions$prop, svm_proportions(radial_predictions))
-mae(results$true.CSMF, results$est.CSMF)
 
-# qui creare una tabella
+linear_mae <- mae(true_proportions$prop, svm_proportions(linear_predictions))
+radial_mae <- mae(true_proportions$prop, svm_proportions(radial_predictions))
+readme_mae <- mae(results$true.CSMF, results$est.CSMF)
+
+unlink("results/mae_table.rds")
+mae_table <- data.frame(linear = linear_mae, radial=  radial_mae, readme = readme_mae, row.names = "mean_absolute_error")
+saveRDS(mae_table, "results/mae_table.rds")
+
 
 # ===========================================
 
-all_data <- data.frame(true = results$true.CSMF, 
+rotten <- data.frame(true = results$true.CSMF, 
                        readme_est = results$est.CSMF,
                        linear_est = svm_proportions(linear_predictions),
                        radial_est = svm_proportions(radial_predictions)) %>% 
             add_column(rating = as.factor(seq(1,5,1))) %>% 
   gather(key = type, value = est, -c(rating, true))
 
-library(RColorBrewer)
-ggplot(all_data, aes(true, est, color = rating, shape = type)) +
-  geom_point(size = 2) +
-  xlab(expression(P(D))) +
-  ylab(paste("Estimated ", expression(P(D)))) +
-  geom_abline(slope = 1, intercept = 0) +
-  xlim(c(0,0.6)) + ylim(c(0,0.6)) +
-  scale_color_brewer(palette="Set2")+
-  scale_shape_manual(values = c(0, 2, 16))
+unlink("results/rotten.rds")
+saveRDS(rotten, "results/rotten.rds")
+
+
+
+# library(RColorBrewer)
+# ggplot(all_data, aes(true, est, color = rating, shape = type)) +
+#   geom_point(size = 2) +
+#   xlab(expression(P(D))) +
+#   ylab(paste("Estimated ", expression(P(D)))) +
+#   geom_abline(slope = 1, intercept = 0) +
+#   xlim(c(0,0.6)) + ylim(c(0,0.6)) +
+#   scale_color_brewer(palette="Set2")+
+#   scale_shape_manual(values = c(0, 2, 16))
 
 
   

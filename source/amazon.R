@@ -16,62 +16,66 @@ electronics <- json_to_df("../dataset/Electronics_5.json")
 # unlink("plots/amazon_prop.jpg"); jpeg(filename="plots/amazon_prop.jpg")
 # par(mfrow=c(2,2))
 
-unlink("plots/amazon_cds.png"); png(filename="plots/amazon_cds.png");
-cds %>% mutate(year = format(reviewTime, "%Y")) %>%
+# unlink("plots/amazon_cds.png"); png(filename="plots/amazon_cds.png");
+
+unlink("results/cds_prop.rds")
+cds_prop <- cds %>% mutate(year = format(reviewTime, "%Y")) %>%
   filter(year > "2004", year < "2014") %>%
   mutate(rating = factor(overall)) %>% 
   group_by(year, rating) %>%
   summarise(n=n()) %>% 
-  mutate(prop = n/sum(n)) %>% 
-  ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
-  geom_point() + geom_line() +
-  scale_color_brewer(palette="Set2")+
-  xlab("review time") + ylab("proportion of reviews")+
-  labs(title="CDs and Vinyls ratings")
-dev.off()
+  mutate(prop = n/sum(n))
+saveRDS(cds_prop, "results/cds_prop.rds")
+  
+  # ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
+  # geom_point() + geom_line() +
+  # scale_color_brewer(palette="Set2")+
+  # xlab("review time") + ylab("proportion of reviews")+
+  # labs(title="CDs and Vinyls ratings")
 
-unlink("plots/amazon_instruments.png"); png(filename="plots/amazon_instruments.png")
-instruments %>% mutate(year = format(reviewTime, "%Y")) %>%
+# unlink("plots/amazon_instruments.png"); png(filename="plots/amazon_instruments.png")
+unlink("results/instr_prop.rds")
+instr_prop <- instruments %>% mutate(year = format(reviewTime, "%Y")) %>%
   filter(year > "2004", year < "2014") %>%
   mutate(rating = factor(overall)) %>% 
   group_by(year, rating) %>%
   summarise(n=n()) %>% 
-  mutate(prop = n/sum(n)) %>% 
-  ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
-  geom_point() + geom_line() +
-  scale_color_brewer(palette="Set2")+
-  xlab("review time") + ylab("proportion of reviews")+
-  labs(title="Musical instruments ratings")
-dev.off()
+  mutate(prop = n/sum(n)) #%>% 
+  # ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
+  # geom_point() + geom_line() +
+  # scale_color_brewer(palette="Set2")+
+  # xlab("review time") + ylab("proportion of reviews")+
+  # labs(title="Musical instruments ratings")
+saveRDS(instr_prop, "results/instr_prop.rds")
 
-unlink("plots/amazon_cellphones.png"); png(filename="plots/amazon_cellphones.png")
-cellphones %>% mutate(year = format(reviewTime, "%Y")) %>%
+unlink("results/cell_prop.rds")
+cell_prop <- cellphones %>% mutate(year = format(reviewTime, "%Y")) %>%
   filter(year > "2004", year < "2014") %>%
   mutate(rating = factor(overall)) %>% 
   group_by(year, rating) %>%
   summarise(n=n()) %>% 
-  mutate(prop = n/sum(n)) %>% 
-  ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
-  geom_point() + geom_line() +
-  scale_color_brewer(palette="Set2")+
-  xlab("review time") + ylab("proportion of reviews")+
-  labs(title="Cellphones ratings")
-dev.off()
+  mutate(prop = n/sum(n))# %>% 
+  # ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
+  # geom_point() + geom_line() +
+  # scale_color_brewer(palette="Set2")+
+  # xlab("review time") + ylab("proportion of reviews")+
+  # labs(title="Cellphones ratings")
+saveRDS(cell_prop, "results/cell_prop.rds")
 
-unlink("plots/amazon_electronics.png"); png(filename="plots/amazon_electronics.png")
-electronics %>% 
+unlink("results/elec_prop.rds")
+elec_prop <- electronics %>% 
   mutate(year = format(reviewTime, "%Y")) %>%
   filter(year > "2004", year < "2014") %>%
   mutate(rating = factor(overall)) %>% 
   group_by(year, rating) %>%
   summarise(n=n()) %>% 
-  mutate(prop = n/sum(n)) %>% 
-  ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
-  geom_point() + geom_line() + 
-  scale_color_brewer(palette="Set2")+
-  xlab("review time") + ylab("proportion of reviews")+
-  labs(title="Electronics ratings")
-dev.off()
+  mutate(prop = n/sum(n))# %>% 
+  # ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
+  # geom_point() + geom_line() + 
+  # scale_color_brewer(palette="Set2")+
+  # xlab("review time") + ylab("proportion of reviews")+
+  # labs(title="Electronics ratings")
+saveRDS(elec_prop, "results/elec_prop.rds")
 
 # par(mfrow=c(1,1))
 # =================================================

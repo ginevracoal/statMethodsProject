@@ -8,3 +8,5 @@ test <- as.data.frame(fread("../dataset/test.tsv"))
 
 str(train)
 str(test)
+
+head(train)
