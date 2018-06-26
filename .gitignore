@@ -7,3 +7,4 @@ readme_examples/*
 *.rds
 project_cache/
 project_files/
+input_readme/
