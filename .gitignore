@@ -6,3 +6,5 @@ readme_examples/*
 input_readme/*
 *.json
 *.rds
+project_cache/
+project_files/
