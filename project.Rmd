@@ -1,28 +1,155 @@
 ---
-title: 'An overview of ReadMe package'
-date: '28 Giugno 2018'
-author: Ginevra Carbone, Domagoj Korais
-always_allow_html: yes
-editor_options:
-  chunk_output_type: inline
+title: "ReadMe package"
+author: "Ginevra Carbone, Domagoj Korais"
+date: "28 Giugno 2018"
 output:
   html_document:
-    toc: yes  
-  # ioslides_presentation:
-  #   incremental: true
-  #   widescreen: true
-  #   fig_width: 7
-  #   smaller: true
+    toc: yes
+  ioslides_presentation:
+    fig_width: 7
+    incremental: yes
+    smaller: yes
+    widescreen: yes
+  slidy_presentation:
+    incremental: yes
+editor_options:
+  chunk_output_type: inline
+subtitle: for Content Analysis
+always_allow_html: yes
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(cache = TRUE)
+
+set.seed(123)
+mainwd <- getwd()
+# setwd("/home/ginevracoal/MEGA/Università/DSSC/semester_2/statistical_methods_for_data_science/statMethodsProject/source")
 ```
 
-## Introduction
+```{r libraries, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(ReadMe)
+```
 
-## Theoretical background
+## Introduction | Content Analysis
+
+*What is Sentiment Analysis?*
+
+The process of *categorizing* opinions about a specific sentence or text: classification methods
+
+
+**Sentiment Analysis**: increasing the accuracy of individual classification
+<!-- which is the highest number of correct predictions possible -->
+
+Suppose that missclassifications mostly occur in some specific categories
+
+<!-- in this case we say we have a -->
+*statistical bias*: average difference between true and estimated proportion of documents in each category
+
+<!-- which focuses on -->
+**Content Analysis**: getting approximately unbiased estimates of category proportions
+
+There is no connection between low misclassification rates and low bias
+
+Example: amazon datasets
+
+<!-- ![](source/plots/amazon_cds.png) ![](source/plots/amazon_cellphones.png) -->
+<!-- ![](source/plots/amazon_electronics.png) ![](source/plots/amazon_instruments.png) -->
+
+```{r echo=FALSE}
+# import json
+source("source/json.R")
+
+cds <- json_to_df("dataset/CDs_and_Vinyl_5.json")
+instruments <- json_to_df("dataset/Musical_Instruments_5.json")
+cellphones <- json_to_df("dataset/Cell_Phones_and_Accessories_5.json")
+electronics <- json_to_df("dataset/Electronics_5.json")
+
+#=================================================
+# plotting the distribution of ratings over time
+
+par(mfrow=c(2,2))
+
+cds %>% mutate(year = format(reviewTime, "%Y")) %>%
+  filter(year > "2004", year < "2014") %>%
+  mutate(rating = factor(overall)) %>% 
+  group_by(year, rating) %>%
+  summarise(n=n()) %>% 
+  mutate(prop = n/sum(n)) %>% 
+  ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
+  geom_point() + geom_line() +
+  scale_color_brewer(palette="Set2")+
+  xlab("review time") + ylab("proportion of reviews")+
+  labs(title="CDs and Vinyls ratings")
+
+instruments %>% mutate(year = format(reviewTime, "%Y")) %>%
+  filter(year > "2004", year < "2014") %>%
+  mutate(rating = factor(overall)) %>% 
+  group_by(year, rating) %>%
+  summarise(n=n()) %>% 
+  mutate(prop = n/sum(n)) %>% 
+  ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
+  geom_point() + geom_line() +
+  scale_color_brewer(palette="Set2")+
+  xlab("review time") + ylab("proportion of reviews")+
+  labs(title="Musical instruments ratings")
+
+cellphones %>% mutate(year = format(reviewTime, "%Y")) %>%
+  filter(year > "2004", year < "2014") %>%
+  mutate(rating = factor(overall)) %>% 
+  group_by(year, rating) %>%
+  summarise(n=n()) %>% 
+  mutate(prop = n/sum(n)) %>% 
+  ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
+  geom_point() + geom_line() +
+  scale_color_brewer(palette="Set2")+
+  xlab("review time") + ylab("proportion of reviews")+
+  labs(title="Cellphones ratings")
+
+electronics %>% 
+  mutate(year = format(reviewTime, "%Y")) %>%
+  filter(year > "2004", year < "2014") %>%
+  mutate(rating = factor(overall)) %>% 
+  group_by(year, rating) %>%
+  summarise(n=n()) %>% 
+  mutate(prop = n/sum(n)) %>% 
+  ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
+  geom_point() + geom_line() + 
+  scale_color_brewer(palette="Set2")+
+  xlab("review time") + ylab("proportion of reviews")+
+  labs(title="Electronics ratings")
+
+par(mfrow=c(1,1))
+
+```
+
+## Theoretical background | Analyzing text statistically
+
+Documents need to be **preprocessed**: lowercase, punctuation, spaces, stop words, stemming, bag of words
+
+- Document categories $j=1,\dots,J$
+- Two sets of text documents:
+    - labeled training set $i=1,\dots,n$
+    - unlabeled test set $l=1,\dots,L$
+    
+$D_i = j$ if document $i$ belongs to category $j$
+$\{S_{i1},\dots,S_{iK}\}$ set of stem words for all documents, where $S_{ik}=\delta_{ik}$
+
+**Individual classifications**: $\{D_1,\dots,D_L\}$
+
+vs
+
+**Proportions of classifications**: $P(D) = \{P(D=1),\dots,P(D=J)\}$
+where
+$$
+P(D=j) = \frac{1}{L} \sum_{l=1}^{L} I(D_l = j)
+$$
+
+## Theoretical background | The method
+
+
 
 ## Classification
 -> rotten tomatoes
