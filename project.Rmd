@@ -247,3 +247,4 @@ readRDS("source/results/mae_table.rds")
 
 [1] "A Method of Automated Nonparametric Content Analysis for Social Science", D. J. Hopkins, G. King, 2010.
 [2] "Verbal Autopsy Methods with Multiple Causes of Death", King, Gary and Ying Lu, 2008.
+[3] "ReadMe: Software for Automated Content Analysis", D. Hopkins, G. King, M. Knowles, S. Melendez, 2012.
