@@ -1,43 +1,250 @@
 ---
-title: 'An overview of ReadMe package'
-date: '28 Giugno 2018'
-author: Ginevra Carbone, Domagoj Korais
-always_allow_html: yes
+title: ReadMe package <br> for Content Analysis
+author: "Ginevra Carbone, Domagoj Korais"
+date: "28 Giugno 2018"
+output:
+  ioslides_presentation:
+    fig_width: 7
+    incremental: yes
+    smaller: yes
+    widescreen: yes
+  html_document:
+    toc: yes
+  slidy_presentation:
+    incremental: yes
 editor_options:
   chunk_output_type: inline
-output:
-  html_document:
-    toc: yes  
-  # ioslides_presentation:
-  #   incremental: true
-  #   widescreen: true
-  #   fig_width: 7
-  #   smaller: true
+subtitle: A theoretical and practical evaluation
+always_allow_html: yes
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(cache = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+
+set.seed(123)
+mainwd <- getwd()
+# setwd("/home/ginevracoal/MEGA/Università/DSSC/semester_2/statistical_methods_for_data_science/statMethodsProject/source")
 ```
 
-## Introduction
+```{r libraries, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(ReadMe)
+library(gridExtra)
+```
 
-## Theoretical background
+## Introduction | Content Analysis {.build}
 
-## Classification
--> rotten tomatoes
+<div class="centered">
+What is **Sentiment Analysis**? 
+</div>
+It is the process of *categorizing* opinions about a specific sentence or text. 
 
-## analisi approfondita (botto di plot) 
--> amazon
-- boxplot correlazione rating numero di parole
-- distribuzione dei rating
-- scatterplot principale
-- proporzioni nel tempo
-- standard error sul training set
+<br>
 
-## possibili problemi
-- twitter, lunghezza frasi
-- stemming 
-- bootstrap?
+<div class="columns-2">
 
-## conclusioni
+<div align = "center">
+**Classification methods**
+</div>
+
+*Goal:* increasing the accuracy of individual classifications,
+which is the highest number of correct predictions.
+
+Suppose that missclassifications mostly occur in some specific categories.
+This is the case of a *statistical bias*: average difference between true and estimated proportion of documents in each category.
+
+<!-- <br> -->
+<div align="center">
+Here comes **Content Analysis**
+</div>
+
+*Goal*: getting approximately unbiased estimates of category proportions.
+
+Notice that there exists *no necessary connection* between low misclassification rates and low bias in each category, except at the extremes of classification.
+
+## Introduction | Amazon reviews dataset {.build}
+
+An example of categorical proportions on *Amazon reviews*.
+
+```{r}
+cds_prop <- readRDS("source/results/cds_prop.rds")
+instr_prop <- readRDS("source/results/instr_prop.rds")
+cell_prop <- readRDS("source/results/cell_prop.rds")
+elec_prop <- readRDS("source/results/elec_prop.rds")
+```
+
+<div class="centered">
+```{r}
+cds_plot <- cds_prop %>% ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
+  geom_point() + geom_line() +
+  scale_color_brewer(palette="Set2")+
+  xlab("review time") + ylab("proportion of reviews")+
+  labs(title="CDs and Vinyls ratings")+
+  theme_minimal()
+
+instr_plot <- instr_prop %>% 
+  ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
+  geom_point() + geom_line() +
+  scale_color_brewer(palette="Set2")+
+  xlab("review time") + ylab("proportion of reviews")+
+  labs(title="Musical instruments ratings")+
+    theme_minimal()
+
+cell_plot <- cell_prop %>% 
+  ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
+  geom_point() + geom_line() +
+  scale_color_brewer(palette="Set2")+
+  xlab("review time") + ylab("proportion of reviews")+
+  labs(title="Cellphones ratings")+
+  theme_minimal()
+
+elec_plot <- elec_prop %>% 
+  ggplot(aes(x = year, y = prop, group = factor(rating), color = rating)) + 
+  geom_point() + geom_line() + 
+  scale_color_brewer(palette="Set2")+
+  theme_minimal()+
+  xlab("review time") + ylab("proportion of reviews")+
+  labs(title="Electronics ratings")
+
+grid.arrange(cds_plot,instr_plot, cell_plot, elec_plot, ncol=2, nrow=2)
+```
+
+## Theoretical background | Analyzing text statistically {.build}
+
+Documents need to be **preprocessed** by removing lowercase, punctuation, spaces, stop words, applying stemming and creating the so called "bag of words".
+
+<br>
+
+We will use the following *notation*.
+
+- $j=1,\dots,J$ are document categories;
+- there are two sets of text documents:
+    - labeled training set $i=1,\dots,n$;
+    - unlabeled test set $l=1,\dots,L$;
+- $D_i = j$ if document $i$ belongs to category $j$;
+- $\{S_{i1},\dots,S_{iK}\}$ is the set of stem words for all documents, where $S_{ik}=\delta_{ik}$.
+
+## Theoretical background | Analyzing text statistically {.build}
+
+<div align="center">
+**Individual classifications**
+
+$\{D_1,\dots,D_L\}$
+
+vs
+
+**Proportions of classifications** 
+
+$P(D) = \{P(D=1),\dots,P(D=J)\}$
+</div>
+
+<br>
+
+where $P(D=j) = \frac{1}{L} \sum_{l=1}^{L} I(D_l = j)$ is the proportion of documents belonging to category $j$.
+
+
+## Theoretical background | The method {.build}
+
+The method provided by `ReadMe` package allows to calculate these estimates **without performing an individual classification**, let's understand how.
+
+Let $\hat{D}$ be the estimated classification for the documents. Then the *law of total probability* allows to express the proportion of documents estimated to be in category $j$ in terms of the **missclassification probabilities** $P(\hat{D}=j \,|\, D=j')$ and the **true proportion** as
+$$
+P(\hat{D}=j)=\sum_{j'=1}^{L} P(\hat{D}=j \,|\, D=j') P(D=j').
+$$
+
+
+The idea is to avoid computing $P(\hat{D}=j)$, based on the fact that each text is written by a person with a specific *opinion*.
+
+
+## Theoretical background | The method {.build}
+
+Since the words chosen are by definition a function of the document category and the categories partition our sample space, the probability of each of the $2^k$ stem word combinations (*stem profiles*) occuring is
+$$
+P(S=s)=\sum_{j=1}^{L} P(S=s \,|\, D=j) P(D=j)
+$$
+where $P(S=s | D=j)$ is the probability of $s$ occuring within a document of category $D$.
+
+We get the equivalent matrix expression  
+$$
+\underset{2^K\times1}{P(S)} = \underset{2^K\times J}{P(S\,|\,D)} \underset{J\times1}{P(D)}.
+$$
+
+## Theoretical background | The method {.build}
+
+The **fundamental assumption** for this model is the proportion $P(S=s \,|\, D=j)$ being the same for both training and test set, so it assumes that the documents in the labeled set contain a sufficient number of examples to describe the language used in each category.
+
+We can now directly solve this equation using regression on the coefficients $P(D)$, but there are two relevant problems we have to pay attention to:
+
+- $K$ can be very large, so $2^K$ makes this model **computationally expensive**;
+- The matrix $P(S=s \,|\, D=j)$ is **sparse**, since $n$ is usually much smaller than $2^K$.
+
+<br>
+<div align="center">
+How do we avoid these problems?
+</div>
+
+We randomly choose a subset of words, as seen in [2].
+
+## Inside ReadMe package | functions {.build}
+
+The package contains three main functions:
+
+- `undergrad()` translates a set of texts stored in a single folder into a dataset, where each text is a row and each word is a column, the so called "**document term matrix**", based on a specific threshold;
+
+- `preprocess()` removes all columns with null variance, i.e. extremely **rare words**;
+
+- `readme()` computes the **real proportions** on the train set and the **estimated proportions** on the test set. It optionally computes **bootstrap intervals** too.
+
+Let's take a better look into these function through an example.
+
+## Inside ReadMe package | Rotten Tomatoes dataset {.build}
+
+The first dataset we analyzed contains $8529$ movie reviews from the famous website *www.rottentomatoes.com*, labeled with ratings from $1$ to $5$.
+
+The inputs for `undergrad()` are the text files containing all the reviews and a data frame containing file names, classification labels, and a (randomly generated) binary value separating train set from test set.
+
+```{r}
+head(readRDS("source/results/rotten_control.rds"))
+```
+
+`preprocess()` found no invariant columns, probably due to the large dimension of our dataset.
+
+## Inside ReadMe package | Rotten Tomatoes dataset {.build}
+
+After applying the main function `readme()`, we computed the same proportions from the results of two diffent classification methods: support vector machines using **linear** and **radial** kernels respectively.
+
+<div align="center">
+```{r fig.height=4.2}
+rotten <- readRDS("source/results/rotten.rds")
+
+ggplot(rotten, aes(true, est, color = rating, shape = type)) +
+  geom_point(size = 2) +
+  xlab(expression(P(D))) +
+  ylab(paste("Estimated ", expression(P(D)))) +
+  geom_abline(slope = 1, intercept = 0) +
+  xlim(c(0,0.6)) + ylim(c(0,0.6)) +
+  scale_color_brewer(palette="Set2")+
+  scale_shape_manual(values = c(0, 2, 16))+
+  theme_minimal()
+```
+</div>
+
+## Inside ReadMe package | Rotten Tomatoes dataset {.build}
+
+The following tables compares the **mean absolute errors** on the proportions for these methods.
+
+```{r}
+readRDS("source/results/mae_table.rds")
+```
+
+## Doma
+
+## Bibliography
+
+[1] "A Method of Automated Nonparametric Content Analysis for Social Science", D. J. Hopkins, G. King, 2010.
+[2] "Verbal Autopsy Methods with Multiple Causes of Death", King, Gary and Ying Lu, 2008.
+[3] "ReadMe: Software for Automated Content Analysis", D. Hopkins, G. King, M. Knowles, S. Melendez, 2012.
