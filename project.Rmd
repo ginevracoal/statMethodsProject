@@ -257,7 +257,7 @@ readRDS("source/results/mae_table.rds")
 ```
 
 
-## Testing Readme | An overview{.build}
+## Testing Readme package | An overview{.build}
 
 <div class="centered">
 Tested on  **Amazon CD and vinyls** dataset
@@ -391,7 +391,7 @@ ggplot(aes(x=as.factor(rating),y=number_words))+
 
 
 
-## Testing Readme | Influence of dimension of the training set 
+## Testing Readme package | Influence of dimension of the training set 
 <div align=center>
 ```{r amazon training size determination}
 library(tidyverse)
@@ -427,48 +427,12 @@ ggplot(results,aes(training,media))+
 
 </div>
 
+## Testing readme package | Influence of number of words per document
+<div class="columns-2">
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## extra corte
-
-```{r  frasi extra corte}
+```{r frasi extra corte0, fig.width=4.5}
 results=readRDS("~/0dssc/smds/statMethodsProject/computed_results/results_extra_corte_1_15_cd.rds")
     ################plotting mod no bootstrap
 
@@ -494,7 +458,7 @@ valori_tot=rename(valori_tot,rating=type)
     #  geom_linerange(aes(ymin=value.est-value, ymax=value.est+value,color=type)) +
      # ggtitle(" Computed vs fitted values for Amazon music dataset, frasi corte")+
       ggplot2::labs(
-        title = "Computed vs fitted values, number of words <=15",
+        title = "Number of words <=15",
         subtitle = paste("total number of elements:",9898,",","of which training:",1000))+
       # geom_smooth(method=lm)+
       xlab("Real value")+
@@ -506,8 +470,10 @@ valori_tot=rename(valori_tot,rating=type)
     ############################
 ```
 
-##Frasi corte
-```{r  frasi  corte}
+
+<br>
+
+```{r frasi  corte0, fig.width=4.5}
 results=readRDS("~/0dssc/smds/statMethodsProject/computed_results/results_corte_16_50_cd.rds")
     ################plotting mod no bootstrap
 
@@ -533,7 +499,7 @@ valori_tot=rename(valori_tot,rating=type)
     #  geom_linerange(aes(ymin=value.est-value, ymax=value.est+value,color=type)) +
      # ggtitle(" Computed vs fitted values for Amazon music dataset, frasi corte")+
       ggplot2::labs(
-        title = "Computed vs fitted values, number of words <=50 e >=16",
+        title = "Number of words <=50 and >=16",
         subtitle = paste("total number of elements:",9898,",","of which training:",1000))+
       # geom_smooth(method=lm)+
       xlab("Real value")+
@@ -545,10 +511,16 @@ valori_tot=rename(valori_tot,rating=type)
     ############################
 ```
 
+</div>
 
 
-##Frasi lunghe
-```{r  frasi lunghe}
+
+
+## Testing readme package | Influence of number of words per document{.build}
+
+<div class="columns-2">
+
+```{r frasi lunghe, fig.width=4.5}
 results=readRDS("~/0dssc/smds/statMethodsProject/computed_results/results_lunghe_51_200_cd.rds")
     ################plotting mod no bootstrap
 
@@ -572,7 +544,7 @@ valori_tot=rename(valori_tot,rating=type)
     #  geom_linerange(aes(ymin=value.est-value, ymax=value.est+value,color=type)) +
      # ggtitle(" Computed vs fitted values for Amazon music dataset, frasi corte")+
       ggplot2::labs(
-        title = "Computed vs fitted values, number of words <=200 e >=51",
+          title = "Number of words <=200 and >=51",
         subtitle = paste("total number of elements:",10000,",","of which training:",1000))+
       # geom_smooth(method=lm)+
       xlab("Real value")+
@@ -584,11 +556,31 @@ valori_tot=rename(valori_tot,rating=type)
     ############################
 ```
 
+<br>
+
+- The accuracy doesn't seem to be affected by a small number of words in the single document
+
+- That's a great news since it means that this package can be used to analyse Tweets, where a major challenge is posed by the fact that 
+ users are limited to 240 characters.
+ 
+- So let's see a real case application of the package 
+
+</div>
+
+
+
+##Using ReadMe on Italian Tweets |
+An overview of the Italian institutional crisis of the 27th of May
 
 
 
 
-##Numero di tweet raccolti
+
+<br>
+
+<div class="columns-2">
+
+
 
 ```{r "top 20 Hashtag analysis"}
 #hashtag study
@@ -644,7 +636,8 @@ dataset_clean %>%
 
 ```
 
-##Distro parole
+<br>
+
 ```{r distro parole}
 #plot dei risultati
 megatrain=readRDS("~/0dssc/smds/statMethodsProject/computed_results/distro_parole_tweets.rds")
@@ -658,8 +651,13 @@ ggplot(aes(number_words))+
   theme_minimal()
 ```
 
-##Andamento temporale tweets
 
+
+
+
+##Twitter activity |Signs of polarization given by some explicit hashtags
+
+<div align="center">
 ```{r "Hashtag analysis zoom"}
 
 #hashtag study
@@ -709,11 +707,35 @@ p4=dataset%>%
                 
                 p4
 ```
+</div>
 
 
-##Prova coi Tweet per verificare 
 
+##Major challenge| Build the labelled trainingset{.build}
+
+- Proposed solution:
+
+- First: Gather tweets with hashtags with explicit meaning:
+
+<div align="center">
+
+**#iostoconmattarella**
+
+VS
+
+**#mattarelladimettiti, #Impeachment, #Impeachmentmattarella**
+</div>
+
+- Second: Select those users that never used both of them, and retain only tweets written from them.
+
+
+
+##Testing Readme on Italian tweets dataset | Language indipendent since we dropped stemming{.build}
+
+<div align=center>
 ```{r}
+
+
 
 mattarella1=readRDS("~/0dssc/smds/statMethodsProject/computed_results/tweet_sentiment_test.rds")
 valori_tot=mattarella1
@@ -739,7 +761,13 @@ plot(p)
 
 ```
 
-##Mattarella sentiment
+</div>
+
+-It works!
+
+##Sentiment towards President Mattarella | Estimated from 10000 random sampled tweets with #Mattarella
+
+<div align=center>
 
 ```{r Mattarella}
 mattarella1=readRDS("~/0dssc/smds/statMethodsProject/computed_results/tweet_mattarella_sentiment.rds")
@@ -750,24 +778,32 @@ valori_tot1$type[valori_tot1$type==1] <- "Pro"
 
 ggplot(valori_tot1,aes(y=value.est,x=type,fill=type))+
   labs(title="Pro e Contra Mattarella",
-       subtitle= "From tweets with hashtag Mattarella",
+       subtitle= "From tweets with hashtag Mattarella. 10000 tweets considered, 2000 tweets as training set",
        x="Sentiment",
        y="Percentage",
-       caption="Tweets gathered using R library Rtweet for the period around May 27")+
+       caption="Tweets gathered using R library Rtweet for the period  May 26-June 03 2018")+
   geom_col()+
   theme_minimal()+
   guides(fill=FALSE)
 
 ```
 
+</div>
 
 
+##Conclusions{.build}
 
+<div align=center>
+-Thank you for your attention
+</div>
 
 
 ## Bibliography
 
 [1] "A Method of Automated Nonparametric Content Analysis for Social Science", D. J. Hopkins, G. King, 2010.
+
 [2] "Verbal Autopsy Methods with Multiple Causes of Death", King, Gary and Ying Lu, 2008.
+
 [3] "ReadMe: Software for Automated Content Analysis", D. Hopkins, G. King, M. Knowles, S. Melendez, 2012.
+
 [4] Amazon dataset: http://jmcauley.ucsd.edu/data/amazon/
