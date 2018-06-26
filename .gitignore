@@ -3,3 +3,5 @@
 .RData
 .Ruserdata
 readme_examples/*
+.json
+.rds
