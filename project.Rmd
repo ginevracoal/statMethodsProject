@@ -57,7 +57,8 @@ which is the highest number of correct predictions.
 Suppose that missclassifications mostly occur in some specific categories.
 This is the case of a *statistical bias*: average difference between true and estimated proportion of documents in each category.
 
-<!-- <br> -->
+<br>
+
 <div align="center">
 Here comes **Content Analysis**
 </div>
@@ -69,7 +70,7 @@ Notice that there exists *no necessary connection* between low misclassification
 
 ## Theoretical background | Analyzing text statistically {.build}
 
-Documents need to be **preprocessed** by removing lowercase, punctuation, spaces, stop words, applying stemming and creating the so called "bag of words".
+Documents need to be **preprocessed** by converting in lowercase words, revoming punctuation, spaces, stop words, applying stemming and creating the so called "bag of words".
 
 <br>
 
@@ -91,7 +92,7 @@ $\{D_1,\dots,D_L\}$
 
 vs
 
-**Proportions of classifications** 
+**Proportions of documents for each class** 
 
 $P(D) = \{P(D=1),\dots,P(D=J)\}$
 </div>
@@ -120,7 +121,7 @@ Since the words chosen are by definition a function of the document category and
 $$
 P(S=s)=\sum_{j=1}^{L} P(S=s \,|\, D=j) P(D=j)
 $$
-where $P(S=s | D=j)$ is the probability of $s$ occuring within a document of category $D$.
+where $P(S=s | D=j)$ is the probability of $s$ occuring within a document of category $j$.
 
 We get the equivalent matrix expression  
 $$
