@@ -241,7 +241,7 @@ ggplot(rotten, aes(true, est, color = rating, shape = type)) +
 library(tidyverse)
 #   rename(rating=overall)
 # saveRDS(reviews, "../dataset/amazon_CDs_and_vinyl.rds")
-reviews=readRDS("~/0dssc/smds/statMethodsProject/dataset/amazon_CDs_and_vinyl.rds")
+reviews=readRDS("source/results/amazon_CDs_and_vinyl.rds")
 #contiamo le parole nei testi, dirty trick, conto gli spazi e aggiungo 1
 reviews=reviews%>%
   mutate(number_words= (str_count(reviewText,pattern = " ")+1) )
@@ -396,7 +396,7 @@ ggplot(aes(x=as.factor(rating),y=number_words))+
 ```{r amazon training size determination}
 library(tidyverse)
 #import dati calcolati altro pc con m=10 mm=10
-super_avg=readRDS("~/0dssc/smds/statMethodsProject/computed_results/risultati_run_amazon_3h_nonliperdere.rds")
+super_avg=readRDS("source/results/risultati_run_amazon_3h_nonliperdere.rds")
 m=10
 mm=10
 #valori medi e deviazione standard dalla lista
@@ -433,7 +433,7 @@ ggplot(results,aes(training,media))+
 
 
 ```{r frasi extra corte0, fig.width=4.5}
-results=readRDS("~/0dssc/smds/statMethodsProject/computed_results/results_extra_corte_1_15_cd.rds")
+results=readRDS("source/results/results_extra_corte_1_15_cd.rds")
     ################plotting mod no bootstrap
 
     valori_fit = results$est.CSMF
@@ -474,7 +474,7 @@ valori_tot=rename(valori_tot,rating=type)
 <br>
 
 ```{r frasi  corte0, fig.width=4.5}
-results=readRDS("~/0dssc/smds/statMethodsProject/computed_results/results_corte_16_50_cd.rds")
+results=readRDS("source/results/results_corte_16_50_cd.rds")
     ################plotting mod no bootstrap
 
     valori_fit = results$est.CSMF
@@ -521,7 +521,7 @@ valori_tot=rename(valori_tot,rating=type)
 <div class="columns-2">
 
 ```{r frasi lunghe, fig.width=4.5}
-results=readRDS("~/0dssc/smds/statMethodsProject/computed_results/results_lunghe_51_200_cd.rds")
+results=readRDS("source/results/results_lunghe_51_200_cd.rds")
     ################plotting mod no bootstrap
 
     valori_fit = results$est.CSMF
@@ -597,7 +597,8 @@ library(igraph)
 library(ggraph)
 #--------------------------------------------------------------------------------------------Hashtag
 #Tidy for hashtag study
-dataset=readRDS("/home/doma/0dssc/data_managment/esame_finale/data/FINAL_DATA_DEFINITIVO/reduced_tweet_no_duplicati_stripped_text_separated.RDS")
+
+dataset=readRDS("source/results/reduced_tweet_no_duplicati_stripped_text_separated.RDS")
 #only italian language tweets
 dataset=dataset%>%filter(lang=="it")
 
@@ -640,7 +641,7 @@ dataset_clean %>%
 
 ```{r distro parole}
 #plot dei risultati
-megatrain=readRDS("~/0dssc/smds/statMethodsProject/computed_results/distro_parole_tweets.rds")
+megatrain=readRDS("source/results/distro_parole_tweets.rds")
 
 
 megatrain%>%
@@ -674,7 +675,7 @@ library(igraph)
 library(ggraph)
 #--------------------------------------------------------------------------------------------Hashtag
 #Tidy for hashtag study
-dataset=readRDS("/home/doma/0dssc/data_managment/esame_finale/data/FINAL_DATA_DEFINITIVO/reduced_tweet_no_duplicati_stripped_text_separated.RDS")
+dataset=readRDS("source/results/reduced_tweet_no_duplicati_stripped_text_separated.RDS")
 #only italian language tweets
 dataset=dataset%>%filter(lang=="it")
 
@@ -737,7 +738,7 @@ VS
 
 
 
-mattarella1=readRDS("~/0dssc/smds/statMethodsProject/computed_results/tweet_sentiment_test.rds")
+mattarella1=readRDS("source/results/tweet_sentiment_test.rds")
 valori_tot=mattarella1
 valori_tot1=valori_tot
 valori_tot1$type[valori_tot1$type==0] <- "Contra"
@@ -770,7 +771,7 @@ plot(p)
 <div align=center>
 
 ```{r Mattarella}
-mattarella1=readRDS("~/0dssc/smds/statMethodsProject/computed_results/tweet_mattarella_sentiment.rds")
+mattarella1=readRDS("source/results/tweet_mattarella_sentiment.rds")
 valori_tot=mattarella1
 valori_tot1=valori_tot
 valori_tot1$type[valori_tot1$type==0] <- "Contra"
