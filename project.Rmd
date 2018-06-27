@@ -290,7 +290,7 @@ Performed **tests**
 - Assessing optimal parameters
 
 
-##Main characteristics of the dataset | Words and ratings distributions
+## Main characteristics of the dataset | Words and ratings distributions
 
 
 <div align="center">
@@ -327,10 +327,9 @@ p=ggplot(classes,aes(rating,total,fill=as.factor(rating)))+
   geom_col()+
   labs(fill="Rating",
        title=" Ratings count")+
-       
-     
   xlab("Rating")+
   ylab("")+
+  scale_color_brewer(palette="Set2")+
   theme_minimal()
 return(p)
 }
