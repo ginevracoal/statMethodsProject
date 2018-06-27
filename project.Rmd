@@ -784,6 +784,8 @@ ggplot(valori_tot1,aes(y=value.est,x=type,fill=type))+
 
 [4] Amazon dataset: http://jmcauley.ucsd.edu/data/amazon/
 
+[5] ReadMe software releases: https://gking.harvard.edu/readme
+
 ***
 
 # Thank you for your attention
